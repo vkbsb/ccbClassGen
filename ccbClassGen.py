@@ -44,7 +44,7 @@ def getCPP(cname, bcname, members, methods, ctrlmethods):
     /* Create an autorelease NodeLoaderLibrary. */
     NodeLoaderLibrary * ccNodeLoaderLibrary = NodeLoaderLibrary::newDefaultNodeLoaderLibrary();
 
-    ccNodeLoaderLibrary->registerNodeLoader("{ClassName}", %sLoader::loader());
+    ccNodeLoaderLibrary->registerNodeLoader("{ClassName}", {ClassName}Loader::loader());
 
     /* Create an autorelease CCBReader. */
     cocosbuilder::CCBReader * ccbReader = new cocosbuilder::CCBReader(ccNodeLoaderLibrary);
