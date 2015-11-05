@@ -110,7 +110,15 @@ bool {ClassName}::onAssignCCBMemberVariable(cocos2d::Ref* pTarget, const char* p
     cppcontents += """
     return false;
 }
+
 """
+    #add the member functions to the class
+    for method in set(methods):
+        cppcontents +="void {ClassName}::{Method}(Ref* pSender){{\n\tlog(\"{ClassName}::{Methdo}\");\n}}".format(ClassName=cname, Method=method)
+
+    for method in set(ctrlmethods):
+        cppcontents += "void {ClassName}::{Method}(cocos2d::Ref *pSender, Control::EventType pControlEvent){{\n\tlog(\"{ClassName}::{Method}\");\n}}".format(ClassName=cname, Method=method)
+
     return cppcontents
 
 def getHPP(cname, bcname, members, methods, ctrlmethods):
@@ -159,7 +167,7 @@ class {ClassName} : public {BaseClass},  public CCBSelectorResolver, public CCBM
     ~{ClassName}();
     CREATE_FUNC({ClassName});
 
-    static %s* getNewInstance();
+    static {ClassName}* getNewInstance();
 }};
 
 class {ClassName}Loader : public {BaseClass}Loader {{
