@@ -95,9 +95,9 @@ void {ClassName}::onEnter()
     {BaseClass}::onEnter();
 }}
 
-void {ClassName}%s::onExit()
+void {ClassName}::onExit()
 {{
-    {BaseClass}::onExit()
+    {BaseClass}::onExit();
 }}
 
 bool {ClassName}::onAssignCCBMemberVariable(cocos2d::Ref* pTarget, const char* pMemberVariableName, cocos2d::Node* pNode)
