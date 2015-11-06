@@ -86,6 +86,12 @@ bool {ClassName}::init()
     if(!{BaseClass}::init()){{
         return false;
     }}
+""".format(ClassName=cname, BaseClass=bcname)
+
+    for member in members:
+        cppcontents += "    {name} = NULL;\n".format(**member)
+
+    cppcontents += """
 
     return true;
 }}
@@ -119,6 +125,17 @@ bool {ClassName}::onAssignCCBMemberVariable(cocos2d::Ref* pTarget, const char* p
     for method in set(ctrlmethods):
         cppcontents += "void {ClassName}::{Method}(cocos2d::Ref *pSender, Control::EventType pControlEvent){{\n\tlog(\"{ClassName}::{Method}\");\n}}".format(ClassName=cname, Method=method)
 
+    cppcontents += """
+{ClassName}::~{ClassName}()
+{{
+""".format(ClassName=cname)
+
+    for member in members:
+        cppcontents += "    CC_SAFE_RELEASE({name});\n".format(**member)
+    cppcontents += """
+}
+"""
+
     return cppcontents
 
 def getHPP(cname, bcname, members, methods, ctrlmethods):
@@ -141,7 +158,7 @@ class {ClassName} : public {BaseClass},  public CCBSelectorResolver, public CCBM
 
     #add the member variables to the class
     for member in members:
-        hcontents += "    {class} * {name}\n".format(**member)
+        hcontents += "    {class} * {name};\n".format(**member)
 
     hcontents += """
     public:
