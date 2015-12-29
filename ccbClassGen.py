@@ -64,7 +64,7 @@ cocos2d::SEL_MenuHandler {ClassName}::onResolveCCBCCMenuItemSelector(cocos2d::Re
 
     #CCB_SELECTORRESOLVER_CCMENUITEM_GLUE(this, "buttonClicked", SmileKpi::buttonClicked);
     for method in set(methods):
-        cppcontents += "    CCB_SELECTORRESOLVER_CCMENUITEM_GLUE(this, {Function}, {ClassName}::{Function});".format(Function=method, ClassName=cname)
+        cppcontents += "    CCB_SELECTORRESOLVER_CCMENUITEM_GLUE(this, \"{Function}\", {ClassName}::{Function});\n".format(Function=method, ClassName=cname)
 
     cppcontents += """
     return nullptr;
@@ -120,10 +120,10 @@ bool {ClassName}::onAssignCCBMemberVariable(cocos2d::Ref* pTarget, const char* p
 """
     #add the member functions to the class
     for method in set(methods):
-        cppcontents +="void {ClassName}::{Method}(Ref* pSender){{\n\tlog(\"{ClassName}::{Methdo}\");\n}}".format(ClassName=cname, Method=method)
+        cppcontents +="void {ClassName}::{Method}(Ref* pSender){{\n\tlog(\"{ClassName}::{Method}\");\n}}\n".format(ClassName=cname, Method=method)
 
     for method in set(ctrlmethods):
-        cppcontents += "void {ClassName}::{Method}(cocos2d::Ref *pSender, Control::EventType pControlEvent){{\n\tlog(\"{ClassName}::{Method}\");\n}}".format(ClassName=cname, Method=method)
+        cppcontents += "void {ClassName}::{Method}(cocos2d::Ref *pSender, Control::EventType pControlEvent){{\n\tlog(\"{ClassName}::{Method}\");\n}}\n".format(ClassName=cname, Method=method)
 
     cppcontents += """
 {ClassName}::~{ClassName}()
