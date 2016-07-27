@@ -30,7 +30,19 @@ Scene * {ClassName}::createScene()
     return nodePtr;
 }}
 
-void {ClassName}::setState({ClassName}::UiState state)
+void {ClassName}::completedAnimationSequenceNamed(const char *name)
+{{
+    //int id = pAnimManager->getSequenceId(name);
+    /*
+        you can take action based on _curState value in this function 
+        eg:
+        switch(_curState){{
+            //write case statements for each state.
+        }
+    */
+}}
+
+void {ClassName}::setCCBState({ClassName}::CCBState state)
 {{
     if(_curState == state){{
         log("setState called with current state");
@@ -51,6 +63,9 @@ void {ClassName}::setAnimManager(CCBAnimationManager *ptr)
     CC_SAFE_RELEASE(pAnimManager);
     pAnimManager = ptr;
     CC_SAFE_RETAIN(pAnimManager);
+    if(pAnimManager){
+        pAnimManager->setDelegate(this);
+    }
 }}
 
 cocos2d::SEL_MenuHandler {ClassName}::onResolveCCBCCMenuItemSelector(cocos2d::Ref * pTarget, const char* pSelectorName)
@@ -72,7 +87,7 @@ bool {ClassName}::init()
         return false;
     }}
     
-    _curState = {ClassName}::UiState({DefaultAnimSequence});
+    _curState = {ClassName}::CCBState({DefaultAnimSequence});
     pAnimManager = NULL;
     {MemberVariablesInit}
 

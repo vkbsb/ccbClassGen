@@ -9,12 +9,15 @@ USING_NS_CC;
 USING_NS_CC_EXT;
 using namespace cocosbuilder;
 
-class {ClassName} : public {BaseClass},  public CCBSelectorResolver, public CCBMemberVariableAssigner
+class {ClassName} : public {BaseClass},  
+public CCBSelectorResolver, 
+public CCBMemberVariableAssigner, 
+public CCBAnimationManagerDelegate
 {{
     public: 
     //enums for setting the state.
-    enum UiState {{
-        UiState_INVALID = -1,
+    enum CCBState {{
+        CCBState_INVALID = -1,
         {AnimsEnum}
     }};
 
@@ -22,8 +25,8 @@ class {ClassName} : public {BaseClass},  public CCBSelectorResolver, public CCBM
     //variables come here.
     {MemberVariables}
 
-    {ClassName}::UiState _curState; 
-    {ClassName}::UiState _prevState;
+    {ClassName}::CCBState _curState; 
+    {ClassName}::CCBState _prevState;
     CCBAnimationManager *pAnimManager;
 
     public:
@@ -38,10 +41,11 @@ class {ClassName} : public {BaseClass},  public CCBSelectorResolver, public CCBM
     virtual bool onAssignCCBMemberVariable(cocos2d::Ref* target, const char* memberVariableName, cocos2d::Node* node);
 
     //animation related functions.
+    virtual void completedAnimationSequenceNamed(const char *name);
     void setAnimManager(CCBAnimationManager *ptr);
-    void setState({ClassName}::UiState state);
-    {ClassName}::UiState getCurState(){{ return _curState; }}
-    {ClassName}::UiState getPrevState(){{ return _prevState; }}
+    void setCCBState({ClassName}::CCBState state);
+    {ClassName}::CCBState getCCBState(){{ return _curState; }}
+    {ClassName}::CCBState getPrevCCBState(){{ return _prevState; }}
 
     //member functions for callbacks.
     {ClassMethods}
