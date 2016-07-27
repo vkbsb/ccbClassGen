@@ -11,3 +11,9 @@ In this example the custom class defined for MainMenu.ccb is  "WordRushMain".
 The script will generate WordRushMain.cpp and WordRushMain.h files with all the
 member variables and member functions defined / required for the class.
 
+
+#TODO
+
+1) Makesure you do not add duplicate member variables.
+2) MakeSure that duplicate method access do not create multiple functions.
+3) Code merging instead of replacing, for incremental updates on ccb files.
