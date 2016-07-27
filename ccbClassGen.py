@@ -103,6 +103,12 @@ def getHPP(cname, bcname, members, methods, ctrlmethods, sequences):
     hpp_template = hpp_template_file.read()
     hpp_template_file.close()
  
+    anim_enum = ""
+    for seq in sequences:
+        seq["name"] = seq["name"].upper().replace(" ", "_")
+        anim_enum += "{name} = {sequenceId}, ".format(**seq)
+    anim_enum = anim_enum[:-2];
+    
     #add the member variables to the class
     member_vars = ""
     for member in members:
@@ -114,9 +120,15 @@ def getHPP(cname, bcname, members, methods, ctrlmethods, sequences):
         class_methods +="   void {}(Ref* pSender);\n".format(method)
 
     for method in set(ctrlmethods):
-        class_methods += "    void {0}(cocos2d::Ref *pSender, Control::EventType pControlEvent);\n".format(method)
+        class_methods += "  void {0}(cocos2d::Ref *pSender, Control::EventType pControlEvent);\n".format(method)
 
-    hcontents = hpp_template.format(ClassName=cname, BaseClass=bcname, MemberVariables=member_vars, ClassMethods=class_methods)
+    obj = {}
+    obj["ClassName"] = cname
+    obj["BaseClass"] = bcname
+    obj["MemberVariables"] = member_vars
+    obj["ClassMethods"] = class_methods
+    obj["AnimsEnum"] = anim_enum
+    hcontents = hpp_template.format(**obj)
 
     return hcontents 
 
@@ -135,7 +147,6 @@ if __name__ == '__main__':
 
     ccb = plistlib.readPlist(fpath)
 
-
     nodeGraph = ccb["nodeGraph"]
     ccbClass = nodeGraph["customClass"]
     baseClass = nodeGraph["baseClass"].replace("CC", "", 1)
@@ -147,6 +158,7 @@ if __name__ == '__main__':
 
     cppfname = ccbClass + ".cpp"
     hppfname = ccbClass + ".h"
+
     try: 
         fp = open(cppfname, "r")
         print "file {0} exists please delete it or move it.".format(cppfname)

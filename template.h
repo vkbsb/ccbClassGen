@@ -14,7 +14,17 @@ class {ClassName} : public {BaseClass},  public CCBSelectorResolver, public CCBM
     //variables come here.
     {MemberVariables}
 
+    {ClassName}::UiState _curState; 
+    {ClassName}::UiState _prevState;
+    CCBAnimationManager *pAnimManager;
+
     public:
+
+    //enums for setting the state.
+    enum UiState {{
+        {AnimsEnum}
+    }};
+
     bool init();
     virtual void onEnter();
     virtual void onExit();
@@ -22,6 +32,12 @@ class {ClassName} : public {BaseClass},  public CCBSelectorResolver, public CCBM
     virtual cocos2d::SEL_MenuHandler onResolveCCBCCMenuItemSelector(cocos2d::Ref * pTarget, const char* pSelectorName);
     virtual Control::Handler onResolveCCBCCControlSelector(cocos2d::Ref * pTarget, const char* pSelectorName);
     virtual bool onAssignCCBMemberVariable(cocos2d::Ref* target, const char* memberVariableName, cocos2d::Node* node);
+
+    //animation related functions.
+    void setAnimManager(CCBAnimationManager *ptr);
+    void setState({ClassName}::UiState state);
+    {ClassName}::UiState getCurState(){{ return _curState; }}
+    {ClassName}::UiState getPrevState(){{ return _prevState; }}
 
     //member functions for callbacks.
     {ClassMethods}

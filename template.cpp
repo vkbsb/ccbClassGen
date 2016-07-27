@@ -11,11 +11,39 @@
     ccbReader->setCCBRootPath("res/");
     auto node = ccbReader->readNodeGraphFromFile("res/{ccbiFile}");
     node->setPosition(Director::getInstance()->getWinSize()/2);
+    
+    CCBAnimationManager *ptr = dynamic_cast<CCBAnimationManager*>(node->getUserObject());
+
+    {ClassName} *nodePtr = dynamic_cast<{ClassName}*>(node);
+    nodePtr->setAnimManager(ptr);
 
     node->setUserObject(NULL);
     ccbReader->autorelease();
 
-    return dynamic_cast<{ClassName}*>(node);
+    return nodePtr;
+}}
+
+void {ClassName}::setState({ClassName}::UiState state)
+{{
+    if(_curState == state){{
+        log("setState called with current state");
+        return;
+    }}
+
+    if(pAnimManager == NULL){{
+        log("AnimManager missing");
+        return;
+    }}
+
+    _curState = state;
+    pAnimManager->runAnimationSequence(_curState);
+}}
+
+void {ClassName}::setAnimManager(CCBAnimationManager *ptr)
+{{
+    CC_SAFE_RELEASE(pAnimManager);
+    pAnimManager = ptr;
+    CC_SAFE_RETAIN(pAnimManager);
 }}
 
 cocos2d::SEL_MenuHandler {ClassName}::onResolveCCBCCMenuItemSelector(cocos2d::Ref * pTarget, const char* pSelectorName)
@@ -37,6 +65,7 @@ bool {ClassName}::init()
         return false;
     }}
     
+    pAnimManager = NULL;
     {MemberVariablesInit}
 
     return true;
