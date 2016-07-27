@@ -1,6 +1,10 @@
+#!/usr/bin/python
+
 import plistlib
 import sys
 import os
+
+SCRIPT_HOME = "CLASSGEN_HOME"
 
 """
 memberVarAssignmentName # this will give the name of the variable.
@@ -17,7 +21,11 @@ def getVariables(node):
         if child["memberVarAssignmentType"] == 1:
             member = {}
             member['name'] = child["memberVarAssignmentName"]
-            member['class'] = child['baseClass'].replace("CC", "", 1)           
+            member['class'] = child['baseClass'].replace("CC", "", 1)
+
+            #LabelTTF,BMP will all be just Label.
+            if member['class'].startswith('Label'):
+                member['class'] = 'Label';
             members.append(member)
         #iterate over the children of child.
         cchildren = child["children"]
@@ -37,166 +45,80 @@ def getVariables(node):
                 methods.append(val[0])
     return (members, methods, ctrlmethods)
 
-def getCPP(cname, bcname, members, methods, ctrlmethods):
-    cppcontents = """
-#include "{ClassName}.h"
-{ClassName}* {ClassName}::getNewInstance() {{
-    /* Create an autorelease NodeLoaderLibrary. */
-    NodeLoaderLibrary * ccNodeLoaderLibrary = NodeLoaderLibrary::newDefaultNodeLoaderLibrary();
+def getCPP(cname, bcname, members, methods, ctrlmethods, sequences):
+    ccbfile = os.path.basename(fpath).replace("ccb", "ccbi");
 
-    ccNodeLoaderLibrary->registerNodeLoader("{ClassName}", {ClassName}Loader::loader());
-
-    /* Create an autorelease CCBReader. */
-    cocosbuilder::CCBReader * ccbReader = new cocosbuilder::CCBReader(ccNodeLoaderLibrary);
-    ccbReader->setCCBRootPath("res/");
-    auto node = ccbReader->readNodeGraphFromFile("res/{ccbiFile}");
-    node->setPosition(Director::getInstance()->getWinSize()/2);
-
-    node->setUserObject(NULL);
-    ccbReader->autorelease();
-
-    return dynamic_cast<{ClassName}*>(node);
-}}
-
-cocos2d::SEL_MenuHandler {ClassName}::onResolveCCBCCMenuItemSelector(cocos2d::Ref * pTarget, const char* pSelectorName)
-{{
-""".format(ClassName=cname, ccbiFile=os.path.basename(fpath).replace("ccb", "ccbi")) 
-
-    #CCB_SELECTORRESOLVER_CCMENUITEM_GLUE(this, "buttonClicked", SmileKpi::buttonClicked);
-    for method in set(methods):
-        cppcontents += "    CCB_SELECTORRESOLVER_CCMENUITEM_GLUE(this, \"{Function}\", {ClassName}::{Function});\n".format(Function=method, ClassName=cname)
-
-    cppcontents += """
-    return nullptr;
-}}
-
-Control::Handler {ClassName}::onResolveCCBCCControlSelector(cocos2d::Ref * pTarget, const char* pSelectorName)
-{{
-""".format(ClassName=cname, ccbiFile=os.path.basename(fpath).replace("ccb", "ccbi")) 
-
-    for method in set(ctrlmethods):
-        cppcontents += "    CCB_SELECTORRESOLVER_CCCONTROL_GLUE(this, \"%s\", %s::%s);\n" % (method, cname, method)
-
-    cppcontents += """
-    return nullptr;
-}}
-
-bool {ClassName}::init()
-{{
-    if(!{BaseClass}::init()){{
-        return false;
-    }}
-""".format(ClassName=cname, BaseClass=bcname)
-
-    for member in members:
-        cppcontents += "    {name} = NULL;\n".format(**member)
-
-    cppcontents += """
-
-    return true;
-}}
-
-void {ClassName}::onEnter()
-{{
-    {BaseClass}::onEnter();
-}}
-
-void {ClassName}::onExit()
-{{
-    {BaseClass}::onExit();
-}}
-
-bool {ClassName}::onAssignCCBMemberVariable(cocos2d::Ref* pTarget, const char* pMemberVariableName, cocos2d::Node* pNode)
-{{
-""".format(ClassName=cname, BaseClass=bcname)
-
-    for member in members:
-        cppcontents += "    CCB_MEMBERVARIABLEASSIGNER_GLUE(this, \"{name}\", {class} *, {name});\n".format(**member)
+    cpp_template_file = open(os.path.join(os.environ[SCRIPT_HOME], 'template.cpp'))
+    cpp_template = cpp_template_file.read()
+    cpp_template_file.close()
     
-    cppcontents += """
-    return false;
-}
+    mig = "CCB_SELECTORRESOLVER_CCMENUITEM_GLUE"
+    cig = "CCB_SELECTORRESOLVER_CCCONTROL_GLUE"
 
-"""
+    menuitem_glue = "\n"
+    for method in set(methods):
+        menuitem_glue += "    {Mig}(this, \"{Function}\", {ClassName}::{Function});\n".format(Mig=mig, Function=method, ClassName=cname)
+
+    control_glue = "\n"
+    for method in set(ctrlmethods):
+        control_glue += "    %s(this, \"%s\", %s::%s);\n" % (cig, method, cname, method)
+
+    member_init = "\n"
+    for member in members:
+        member_init += "    {name} = NULL;\n".format(**member)
+
+    member_glue = "\n"
+    for member in members:
+        member_glue += "    CCB_MEMBERVARIABLEASSIGNER_GLUE(this, \"{name}\", {class} *, {name});\n".format(**member)
+    
+    member_functions = ""
     #add the member functions to the class
     for method in set(methods):
-        cppcontents +="void {ClassName}::{Method}(Ref* pSender){{\n\tlog(\"{ClassName}::{Method}\");\n}}\n".format(ClassName=cname, Method=method)
+        member_functions +="void {ClassName}::{Method}(Ref* pSender){{\n\tlog(\"{ClassName}::{Method}\");\n}}\n".format(ClassName=cname, Method=method)
 
     for method in set(ctrlmethods):
-        cppcontents += "void {ClassName}::{Method}(cocos2d::Ref *pSender, Control::EventType pControlEvent){{\n\tlog(\"{ClassName}::{Method}\");\n}}\n".format(ClassName=cname, Method=method)
+        member_functions += "void {ClassName}::{Method}(cocos2d::Ref *pSender, Control::EventType pControlEvent){{\n\tlog(\"{ClassName}::{Method}\");\n}}\n".format(ClassName=cname, Method=method)
 
-    cppcontents += """
-{ClassName}::~{ClassName}()
-{{
-""".format(ClassName=cname)
-
+    member_destroy = "\n"
     for member in members:
-        cppcontents += "    CC_SAFE_RELEASE({name});\n".format(**member)
-    cppcontents += """
-}
-"""
+        member_destroy += "    CC_SAFE_RELEASE({name});\n".format(**member)
+    
+    obj = {}
+    obj["ClassName"] = cname
+    obj["BaseClass"] = bcname
+    obj["ccbiFile"] = ccbfile
+    obj["MenuItemGlue"] = menuitem_glue
+    obj["ControlItemGlue"] = control_glue
+    obj["MemberVariablesInit"] = member_init
+    obj["MemberVariableGlue"] = member_glue
+    obj["MemberFunctions"] = member_functions
+    obj["MemberVariablesDestroy"] = member_destroy
+
+    cppcontents = cpp_template.format(**obj)
 
     return cppcontents
 
-def getHPP(cname, bcname, members, methods, ctrlmethods):
-    hcontents = """
-#ifndef __{ClassName}__
-#define __{ClassName}__
-
-#include <iostream>
-#include "cocos2d.h"
-#include "cocos-ext.h"
-#include "cocosbuilder/CocosBuilder.h"
-USING_NS_CC;
-USING_NS_CC_EXT;
-using namespace cocosbuilder;
-
-class {ClassName} : public {BaseClass},  public CCBSelectorResolver, public CCBMemberVariableAssigner
-{{
-    //variables come here.
-""".format(ClassName=cname, BaseClass=bcname) 
-
+def getHPP(cname, bcname, members, methods, ctrlmethods, sequences):
+    hpp_template_file = open(os.path.join(os.environ[SCRIPT_HOME], 'template.h'))
+    hpp_template = hpp_template_file.read()
+    hpp_template_file.close()
+ 
     #add the member variables to the class
+    member_vars = ""
     for member in members:
-        hcontents += "    {class} * {name};\n".format(**member)
+        member_vars += "    {class} * {name};\n".format(**member)
 
-    hcontents += """
-    public:
-    bool init();
-    virtual void onEnter();
-    virtual void onExit();
-
-    virtual cocos2d::SEL_MenuHandler onResolveCCBCCMenuItemSelector(cocos2d::Ref * pTarget, const char* pSelectorName);
-    virtual Control::Handler onResolveCCBCCControlSelector(cocos2d::Ref * pTarget, const char* pSelectorName);
-    virtual bool onAssignCCBMemberVariable(cocos2d::Ref* target, const char* memberVariableName, cocos2d::Node* node);
-
-    //member functions for callbacks.
-"""
+    class_methods = ""
     #add the member functions to the class
     for method in set(methods):
-        hcontents +="   void {}(Ref* pSender);\n".format(method)
+        class_methods +="   void {}(Ref* pSender);\n".format(method)
 
     for method in set(ctrlmethods):
-        hcontents += "    void {0}(cocos2d::Ref *pSender, Control::EventType pControlEvent);\n".format(method)
+        class_methods += "    void {0}(cocos2d::Ref *pSender, Control::EventType pControlEvent);\n".format(method)
 
-    #tailend of the header file.
-    hcontents += """
-    ~{ClassName}();
-    CREATE_FUNC({ClassName});
+    hcontents = hpp_template.format(ClassName=cname, BaseClass=bcname, MemberVariables=member_vars, ClassMethods=class_methods)
 
-    static {ClassName}* getNewInstance();
-}};
-
-class {ClassName}Loader : public {BaseClass}Loader {{
-    public:
-        CCB_STATIC_NEW_AUTORELEASE_OBJECT_METHOD({ClassName}Loader, loader);
-
-        CCB_VIRTUAL_NEW_AUTORELEASE_CREATECCNODE_METHOD({ClassName});
-}};
-
-#endif /* defined(__{ClassName}__) */ 
-""".format(ClassName=cname, BaseClass=baseClass) 
-    return hcontents
+    return hcontents 
 
 if __name__ == '__main__': 
     if len(sys.argv) < 2:
@@ -205,16 +127,23 @@ if __name__ == '__main__':
 
     fpath = sys.argv[1]
 
+    if not (SCRIPT_HOME in os.environ):
+        import inspect, os
+        print inspect.getfile(inspect.currentframe()) # script filename (usually with path)
+        path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) # script director
+        os.environ[SCRIPT_HOME] = path
+
     ccb = plistlib.readPlist(fpath)
 
 
     nodeGraph = ccb["nodeGraph"]
     ccbClass = nodeGraph["customClass"]
+    baseClass = nodeGraph["baseClass"].replace("CC", "", 1)
+    sequences = ccb["sequences"]
 
     (members, methods, ctrlmethods) = getVariables(nodeGraph)
-    baseClass = nodeGraph["baseClass"].replace("CC", "", 1)
-    hpp = getHPP(ccbClass, baseClass, members, methods, ctrlmethods)
-    cpp = getCPP(ccbClass, baseClass, members, methods, ctrlmethods)
+    hpp = getHPP(ccbClass, baseClass, members, methods, ctrlmethods, sequences)
+    cpp = getCPP(ccbClass, baseClass, members, methods, ctrlmethods, sequences)
 
     cppfname = ccbClass + ".cpp"
     hppfname = ccbClass + ".h"
