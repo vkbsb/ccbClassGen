@@ -11,6 +11,14 @@ using namespace cocosbuilder;
 
 class {ClassName} : public {BaseClass},  public CCBSelectorResolver, public CCBMemberVariableAssigner
 {{
+    public: 
+    //enums for setting the state.
+    enum UiState {{
+        UiState_INVALID = -1,
+        {AnimsEnum}
+    }};
+
+    private:
     //variables come here.
     {MemberVariables}
 
@@ -20,10 +28,6 @@ class {ClassName} : public {BaseClass},  public CCBSelectorResolver, public CCBM
 
     public:
 
-    //enums for setting the state.
-    enum UiState {{
-        {AnimsEnum}
-    }};
 
     bool init();
     virtual void onEnter();
@@ -45,6 +49,7 @@ class {ClassName} : public {BaseClass},  public CCBSelectorResolver, public CCBM
     ~{ClassName}();
     CREATE_FUNC({ClassName});
 
+    static Scene * createScene();
     static {ClassName}* getNewInstance();
 }};
 

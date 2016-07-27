@@ -62,6 +62,11 @@ def getCPP(cname, bcname, members, methods, ctrlmethods, sequences):
     control_glue = "\n"
     for method in set(ctrlmethods):
         control_glue += "    %s(this, \"%s\", %s::%s);\n" % (cig, method, cname, method)
+    
+    default_anim = -1;
+    for seq in sequences:
+        if seq['autoPlay'] == 'True':
+            default_anim = seq['sequenceId']
 
     member_init = "\n"
     for member in members:
@@ -93,6 +98,7 @@ def getCPP(cname, bcname, members, methods, ctrlmethods, sequences):
     obj["MemberVariableGlue"] = member_glue
     obj["MemberFunctions"] = member_functions
     obj["MemberVariablesDestroy"] = member_destroy
+    obj["DefaultAnimSequence"] = default_anim
 
     cppcontents = cpp_template.format(**obj)
 

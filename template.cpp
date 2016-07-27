@@ -1,5 +1,12 @@
 #include "{ClassName}.h"
 
+Scene * {ClassName}::createScene()
+{{
+    Scene *pscene = Scene::create();
+    pscene->addChild({ClassName}::getNewInstance());
+    return pscene;
+}}
+
 {ClassName}* {ClassName}::getNewInstance() {{
     /* Create an autorelease NodeLoaderLibrary. */
     NodeLoaderLibrary * ccNodeLoaderLibrary = NodeLoaderLibrary::newDefaultNodeLoaderLibrary();
@@ -36,7 +43,7 @@ void {ClassName}::setState({ClassName}::UiState state)
     }}
 
     _curState = state;
-    pAnimManager->runAnimationSequence(_curState);
+    pAnimManager->runAnimationsForSequenceIdTweenDuration(_curState, 0);
 }}
 
 void {ClassName}::setAnimManager(CCBAnimationManager *ptr)
@@ -65,8 +72,10 @@ bool {ClassName}::init()
         return false;
     }}
     
+    _curState = {ClassName}::UiState({DefaultAnimSequence});
     pAnimManager = NULL;
     {MemberVariablesInit}
+
 
     return true;
 }}
