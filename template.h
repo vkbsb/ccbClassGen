@@ -17,11 +17,13 @@ public CCBAnimationManagerDelegate
     public: 
     //enums for setting the state.
     enum CCBState {{
-        CCBState_INVALID = -1,
+        STATE_INVALID = -1,
         {AnimsEnum}
     }};
 
     private:
+    bool _isAnimating;
+
     //variables come here.
     {MemberVariables}
 

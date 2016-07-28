@@ -6,6 +6,14 @@ import os
 
 SCRIPT_HOME = "CLASSGEN_HOME"
 
+def getNodeProp(node, propName):
+    props = node["properties"]
+    for prop in props:
+        if prop["name"] == propName:
+            return prop
+    return None
+
+
 """
 memberVarAssignmentName # this will give the name of the variable.
 memberVarAssignmentType # 1 we need, 0 we dont' need
@@ -65,7 +73,7 @@ def getCPP(cname, bcname, members, methods, ctrlmethods, sequences):
     
     default_anim = -1;
     for seq in sequences:
-        if seq['autoPlay'] == 'True':
+        if seq['autoPlay']:
             default_anim = seq['sequenceId']
 
     member_init = "\n"
@@ -76,13 +84,31 @@ def getCPP(cname, bcname, members, methods, ctrlmethods, sequences):
     for member in members:
         member_glue += "    CCB_MEMBERVARIABLEASSIGNER_GLUE(this, \"{name}\", {class} *, {name});\n".format(**member)
     
+    #animation check for user input functions disable inputs when CCB is animating.
+    anim_check = """
+    //remove this check if you want button to work when animation is playing.
+    if( _isAnimating ){
+        return;
+    }
+    """
     member_functions = ""
     #add the member functions to the class
     for method in set(methods):
-        member_functions +="void {ClassName}::{Method}(Ref* pSender){{\n\tlog(\"{ClassName}::{Method}\");\n}}\n".format(ClassName=cname, Method=method)
+        member_functions +="""
+void {ClassName}::{Method}(Ref* pSender){{
+    {AnimCheck}
+    log(\"{ClassName}::{Method}\");
+}}
+""".format(AnimCheck=anim_check, ClassName=cname, Method=method)
 
     for method in set(ctrlmethods):
-        member_functions += "void {ClassName}::{Method}(cocos2d::Ref *pSender, Control::EventType pControlEvent){{\n\tlog(\"{ClassName}::{Method}\");\n}}\n".format(ClassName=cname, Method=method)
+        member_functions += """
+void {ClassName}::{Method}(cocos2d::Ref *pSender, Control::EventType pControlEvent)
+{{
+    {AnimCheck}
+    log(\"{ClassName}::{Method}\");
+}}
+""".format(AnimCheck=anim_Check, ClassName=cname, Method=method)
 
     member_destroy = "\n"
     for member in members:
@@ -159,6 +185,13 @@ if __name__ == '__main__':
     sequences = ccb["sequences"]
 
     (members, methods, ctrlmethods) = getVariables(nodeGraph)
+
+    #remove the duplicates in methods / ctrlmethods and members
+    members = {v['name']:v for v in members}.values()
+    methods = set(methods)
+    ctrlmethods = set(ctrlmethods)
+
+    #generate the header / cpp files
     hpp = getHPP(ccbClass, baseClass, members, methods, ctrlmethods, sequences)
     cpp = getCPP(ccbClass, baseClass, members, methods, ctrlmethods, sequences)
 

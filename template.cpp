@@ -7,7 +7,8 @@ Scene * {ClassName}::createScene()
     return pscene;
 }}
 
-{ClassName}* {ClassName}::getNewInstance() {{
+{ClassName}* {ClassName}::getNewInstance() 
+{{
     /* Create an autorelease NodeLoaderLibrary. */
     NodeLoaderLibrary * ccNodeLoaderLibrary = NodeLoaderLibrary::newDefaultNodeLoaderLibrary();
 
@@ -17,7 +18,11 @@ Scene * {ClassName}::createScene()
     cocosbuilder::CCBReader * ccbReader = new cocosbuilder::CCBReader(ccNodeLoaderLibrary);
     ccbReader->setCCBRootPath("res/");
     auto node = ccbReader->readNodeGraphFromFile("res/{ccbiFile}");
-    node->setPosition(Director::getInstance()->getWinSize()/2);
+
+    //if the anchor point is false, we have to place screen at center.
+    if(node->isIgnoreAnchorPointForPosition() == false){{
+        node->setPosition(Director::getInstance()->getWinSize()/2);
+    }}
     
     CCBAnimationManager *ptr = dynamic_cast<CCBAnimationManager*>(node->getUserObject());
 
@@ -32,13 +37,16 @@ Scene * {ClassName}::createScene()
 
 void {ClassName}::completedAnimationSequenceNamed(const char *name)
 {{
+    //toggle animation flag so we know that the user can interact again.
+    _isAnimating = false;
+
     //int id = pAnimManager->getSequenceId(name);
     /*
         you can take action based on _curState value in this function 
         eg:
         switch(_curState){{
             //write case statements for each state.
-        }
+        }}
     */
 }}
 
@@ -55,6 +63,7 @@ void {ClassName}::setCCBState({ClassName}::CCBState state)
     }}
 
     _curState = state;
+    _isAnimating = true;
     pAnimManager->runAnimationsForSequenceIdTweenDuration(_curState, 0);
 }}
 
@@ -63,9 +72,9 @@ void {ClassName}::setAnimManager(CCBAnimationManager *ptr)
     CC_SAFE_RELEASE(pAnimManager);
     pAnimManager = ptr;
     CC_SAFE_RETAIN(pAnimManager);
-    if(pAnimManager){
+    if(pAnimManager){{
         pAnimManager->setDelegate(this);
-    }
+    }}
 }}
 
 cocos2d::SEL_MenuHandler {ClassName}::onResolveCCBCCMenuItemSelector(cocos2d::Ref * pTarget, const char* pSelectorName)
@@ -78,6 +87,7 @@ cocos2d::SEL_MenuHandler {ClassName}::onResolveCCBCCMenuItemSelector(cocos2d::Re
 Control::Handler {ClassName}::onResolveCCBCCControlSelector(cocos2d::Ref * pTarget, const char* pSelectorName)
 {{
     {ControlItemGlue}
+
     return nullptr;
 }}
 
@@ -88,6 +98,13 @@ bool {ClassName}::init()
     }}
     
     _curState = {ClassName}::CCBState({DefaultAnimSequence});
+
+    if(_curState == {ClassName}::CCBState::STATE_INVALID){{
+        _isAnimating = false;
+    }}else{{
+        _isAnimating = true;
+    }}
+
     pAnimManager = NULL;
     {MemberVariablesInit}
 
