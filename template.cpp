@@ -120,6 +120,9 @@ void {ClassName}::onEnter()
 void {ClassName}::onExit()
 {{
     {BaseClass}::onExit();
+
+    //this will ensure that we loose the extra ref on CCBAnimationManager.
+    setUserObject(NULL);
 }}
 
 bool {ClassName}::onAssignCCBMemberVariable(cocos2d::Ref* pTarget, const char* pMemberVariableName, cocos2d::Node* pNode)

@@ -19,7 +19,4 @@ that the directory you run the script from has these files.
 
 
 #TODO
-
-1) Makesure you do not add duplicate member variables.
-2) MakeSure that duplicate method access do not create multiple functions.
 3) Code merging instead of replacing, for incremental updates on ccb files.

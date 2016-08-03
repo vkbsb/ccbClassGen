@@ -34,7 +34,11 @@ def getVariables(node):
             #LabelTTF,BMP will all be just Label.
             if member['class'].startswith('Label'):
                 member['class'] = 'Label';
-            members.append(member)
+
+            #ensure that we do not add members that do not have names set.
+            if member['name']:
+                members.append(member)
+
         #iterate over the children of child.
         cchildren = child["children"]
         if len(cchildren) > 0:
