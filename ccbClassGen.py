@@ -112,7 +112,7 @@ void {ClassName}::{Method}(cocos2d::Ref *pSender, Control::EventType pControlEve
     {AnimCheck}
     log(\"{ClassName}::{Method}\");
 }}
-""".format(AnimCheck=anim_Check, ClassName=cname, Method=method)
+""".format(AnimCheck=anim_check, ClassName=cname, Method=method)
 
     member_destroy = "\n"
     for member in members:
