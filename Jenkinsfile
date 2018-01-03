@@ -2,6 +2,11 @@
 
 String version = "1.2.3"
 
+def tryHttpRequest(){
+    def response = httpRequest "http://httpbin.org/response-headers?param1=$version"
+    println( response )
+}
+
 node {       
     echo 'Building..'
     def changeLogSets = currentBuild.changeSets
@@ -14,7 +19,11 @@ node {
         }
     }
 
-    echo 'Deploying....'
-    def response = httpRequest "http://httpbin.org/response-headers?param1=$version"
-    println( response )
+    stage('Example') {
+        if (env.BRANCH_NAME == 'master') {
+            echo 'I only execute on the master branch'
+        } else {
+            echo 'I execute elsewhere'
+        }
+    }
 }
