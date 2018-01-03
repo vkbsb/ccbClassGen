@@ -1,11 +1,14 @@
 pipeline {
     agent any
+    def changeLogSets
+    def version
+    def response
 
     stages {
         stage('Build') {
             steps {
                 echo 'Building..'
-                def changeLogSets = currentBuild.changeSets                
+                changeSets = currentBuild.changeSets                
                 for (int i = 0; i < changeLogSets.size(); i++) {
                     def entries = changeLogSets[i].items
                     for (int j = 0; j < entries.length; j++) {
@@ -25,8 +28,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo 'Deploying....'
-                def version = "1.2.3"
-                def response = httpRequest "http://httpbin.org/response-headers?param1=$version"
+                version = "1.2.3"
+                response = httpRequest "http://httpbin.org/response-headers?param1=$version"
                 println( response )
             }
         }
